@@ -40,7 +40,9 @@ const TARGET_NAME="王菲菲";
 const LINES=[
 `单身节快乐，${TARGET_NAME}～`,
 "单着呢","哈哈哈哈哈哈","你最美","你最帅","你是超级无敌大可爱",
-"骗你的","祝你早日脱单，不急,,,,,,哈哈哈哈哈哈",
+"骗你的",
+"哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈",
+"祝你早日脱单，不急,,,,,,哈哈哈哈哈哈",
 "别想脱单了，咱们这种人，一看就要陪彼此到80岁","😉"
 ];
 
@@ -60,7 +62,7 @@ const pop=document.getElementById("pop");
 let mouseX=W/2,mouseY=H/2;
 document.addEventListener("mousemove",e=>{mouseX=e.clientX;mouseY=e.clientY;});
 document.addEventListener("touchmove",e=>{mouseX=e.touches[0].clientX;mouseY=e.touches[0].clientY;},{passive:true});
-document.body.addEventListener('click',()=>{
+window.addEventListener('click',()=>{
     bgm.play();
     spawnHeart(mouseX,mouseY,true);
     spawnFirework(mouseX,mouseY);
