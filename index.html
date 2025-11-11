@@ -3,172 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>光棍节快乐</title>
+<title>高级光棍节特效</title>
 <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background-color: #0f1724;
-        font-family: "Helvetica", sans-serif;
-    }
-    #canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-    #textBox {
-        position: absolute;
-        top: 50px;
-        width: 100%;
-        text-align: center;
-        color: #ffd6e0;
-        font-size: 28px;
-        font-weight: bold;
-    }
-    #cta {
-        position: absolute;
-        bottom: 60px;
-        width: 100%;
-        text-align: center;
-        color: #ffcbe6;
-        font-size: 18px;
-        font-style: italic;
-    }
-    #double11 {
-        position: absolute;
-        top: 40px;
-        right: 40px;
-        font-size: 22px;
-        font-weight: bold;
-        color: #ffd6e0;
-    }
+html,body{margin:0;padding:0;overflow:hidden;font-family:Helvetica,sans-serif;}
+body{background:#0f0c27;}
+canvas{position:absolute;top:0;left:0;}
+#textBox{
+    position:absolute;top:50px;width:100%;text-align:center;
+    font-size:48px;font-weight:bold;color:#ffd6e0;
+    text-shadow:0 0 10px #ff88aa,0 0 20px #ff88aa,0 0 40px #ff88aa;
+}
+#double11{
+    position:absolute;top:40px;right:40px;font-size:28px;font-weight:bold;color:#ffd6e0;
+    text-shadow:0 0 12px #ff88aa;
+}
+#cta{
+    position:absolute;bottom:60px;width:100%;text-align:center;font-size:22px;font-style:italic;color:#ffcbe6;
+}
 </style>
 </head>
 <body>
-
 <canvas id="canvas"></canvas>
 <div id="textBox"></div>
-<div id="double11">双 1 1</div>
 <div id="cta">光棍节快乐</div>
 
-<audio id="bgm" src="https://yeheihei8284m1.github.io/wff/7537318707513625363.mp3" autoplay loop></audio>
+<audio id="bgm" src="https://yeheihei8284m1.github.io/wff/7537318707513625363.mp3" autoplay muted loop></audio>
+<audio id="pop" src="pop.wav"></audio>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-let W = window.innerWidth;
-let H = window.innerHeight;
-canvas.width = W;
-canvas.height = H;
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+let W=window.innerWidth,H=window.innerHeight;
+canvas.width=W;canvas.height=H;
 
-// ---------------- 配置 ----------------
-const TARGET_NAME = "王菲菲";
-const LINES = [
-    `单身节快乐，${TARGET_NAME}～`,
-    "单着呢",
-    "哈哈哈哈哈哈",
-    "你最美",
-    "你最帅",
-    "你是超级无敌大可爱",
-    "骗你的",
-    "祝你早日脱单，不急,,,,,,哈哈哈哈哈哈",
-    "别想脱单了，咱们这种人，一看就要陪彼此到80岁",
-    "😉"
+const TARGET_NAME="王菲菲";
+const LINES=[
+`单身节快乐，${TARGET_NAME}～`,
+"单着呢","哈哈哈哈哈哈","你最美","你最帅","你是超级无敌大可爱",
+"骗你的","祝你早日脱单，不急,,,,,,哈哈哈哈哈哈",
+"别想脱单了，咱们这种人，一看就要陪彼此到80岁","😉"
 ];
-const HEART_COLOR = "rgb(255,90,140)";
-const MAX_HEARTS = 20;
-const HEART_SPAWN_INTERVAL = 600; // 毫秒
-const TYPING_SPEED = 50; // ms per char
-// ---------------------------------------
 
-let hearts = [];
-let lastSpawn = Date.now();
-let lineIndex = 0;
-let typingCursor = 0;
-let typingText = LINES[lineIndex];
-let lastTyping = Date.now();
+const hearts=[];
+const fireworks=[];
+const stars=[];
+let lastSpawn=Date.now();
+let lineIndex=0;
+let typingCursor=0;
+let typingText=LINES[lineIndex];
+let lastTyping=Date.now();
 
-const textBox = document.getElementById("textBox");
-const bgm = document.getElementById("bgm");
+const textBox=document.getElementById("textBox");
+const bgm=document.getElementById("bgm");
 
-document.body.addEventListener('click', ()=>{ bgm.play(); }); // 微信需要用户点击才能播放
+let mouseX=W/2,mouseY=H/2;
+document.addEventListener("mousemove",e=>{mouseX=e.clientX;mouseY=e.clientY;});
+document.addEventListener("touchmove",e=>{mouseX=e.touches[0].clientX;mouseY=e.touches[0].clientY;},{passive:true});
+document.body.addEventListener('click',()=>{
+    bgm.play();
+    spawnHeart(mouseX,mouseY,true);
+    spawnFirework(mouseX,mouseY);
+});
 
-function random(min,max){
-    return Math.random()*(max-min)+min;
+window.onload(() => {
+    bgm.play();
+})
+
+// --------------------- 辅助函数 ---------------------
+function random(min,max){return Math.random()*(max-min)+min;}
+function hslColor(){return `hsl(${random(0,360)},100%,70%)`;}
+
+// --------------------- 背景星星 ---------------------
+for(let i=0;i<150;i++){
+    stars.push({x:random(0,W),y:random(0,H),r:random(0.5,1.5),alpha:random(0.1,0.8),delta:random(0.01,0.03)});
+}
+function updateStars(){
+    stars.forEach(s=>{
+        s.alpha+=s.delta;if(s.alpha>0.8||s.alpha<0.1)s.delta*=-1;
+        ctx.fillStyle=`rgba(255,255,255,${s.alpha})`;
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+    });
 }
 
-function drawHeart(x, y, size, color){
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(size, size);
-    ctx.beginPath();
+// --------------------- 心形粒子 ---------------------
+function drawHeart(x,y,size,color){
+    ctx.save();ctx.translate(x,y);ctx.scale(size,size);ctx.beginPath();
     for(let t=0;t<Math.PI*2;t+=0.2){
-        let xt = 16*Math.pow(Math.sin(t),3);
-        let yt = -(13*Math.cos(t) -5*Math.cos(2*t) -2*Math.cos(3*t) - Math.cos(4*t));
-        ctx.lineTo(xt, yt);
+        let xt=16*Math.pow(Math.sin(t),3);
+        let yt=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+        ctx.lineTo(xt,yt);
     }
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.restore();
+    ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();
 }
-
-function spawnHeart(){
-    if(hearts.length >= MAX_HEARTS) return;
+function spawnHeart(x=random(80,W-80),y=H-50,big=false){
     hearts.push({
-        x: random(80, W-80),
-        y: H-50,
-        size: random(0.6,1.2),
-        vy: random(-1.8, -0.9),
-        wiggle: random(10,40),
-        phase: random()*Math.PI*2,
-        birth: Date.now(),
-        life: random(5000,9000)
+        x:x,y:y,
+        size:random(0.8,1.3)*(big?2:1),
+        vy:random(-3,-1.5),
+        wiggle:random(15,50),
+        phase:random()*Math.PI*2,
+        birth:Date.now(),
+        life:random(4000,9000),
+        color:hslColor()
     });
 }
-
 function updateHearts(){
-    let now = Date.now();
-    hearts = hearts.filter(h=>{
-        let age = now - h.birth;
-        if(age>h.life) return false;
-        h.phase += 0.05;
-        h.x += Math.sin(h.phase*1.8)*h.wiggle*0.05;
-        h.y += h.vy*3;
-        let alpha = 1 - age/h.life;
-        drawHeart(h.x, h.y, h.size, `rgba(255,90,140,${alpha})`);
-        return true;
-    });
-}
-
-function updateTyping(){
-    let now = Date.now();
-    if(typingCursor < typingText.length && now - lastTyping > TYPING_SPEED){
-        typingCursor++;
-        lastTyping = now;
-        textBox.innerText = typingText.slice(0, typingCursor) + ((Math.floor(now/500)%2===0)?" |":"");
-    } else if(typingCursor >= typingText.length){
-        textBox.innerText = typingText;
+    let now=Date.now();
+    for(let i=hearts.length-1;i>=0;i--){
+        let h=hearts[i];let age=now-h.birth;
+        if(age>h.life){hearts.splice(i,1);continue;}
+        h.phase+=0.05;h.x+=Math.sin(h.phase*2)*h.wiggle*0.05;h.y+=h.vy*2;
+        let alpha=1-age/h.life;
+        drawHeart(h.x,h.y,h.size,`hsla(${random(0,360)},100%,70%,${alpha})`);
     }
 }
 
-function nextLine(){
-    lineIndex = (lineIndex+1)%LINES.length;
-    typingText = LINES[lineIndex];
-    typingCursor = 0;
-    lastTyping = Date.now();
-    setTimeout(nextLine, Math.max(2000, typingText.length*TYPING_SPEED + 1200));
+// --------------------- 烟花粒子 ---------------------
+function spawnFirework(x,y){
+    for(let i=0;i<25;i++){
+        fireworks.push({
+            x:x, y:y,
+            vx:random(-3,3),
+            vy:random(-3,3),
+            r:random(2,4),
+            alpha:1,
+            decay:random(0.02,0.05),
+            color:hslColor()
+        });
+    }
+}
+function updateFireworks(){
+    for(let i=fireworks.length-1;i>=0;i--){
+        let f=fireworks[i];
+        f.x+=f.vx;f.y+=f.vy;f.alpha-=f.decay;
+        if(f.alpha<=0){fireworks.splice(i,1);continue;}
+        ctx.fillStyle=`hsla(${random(0,360)},100%,70%,${f.alpha})`;
+        ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();
+    }
 }
 
+// --------------------- 打字机文字 ---------------------
+function updateTyping(){
+    let now=Date.now();
+    if(typingCursor<typingText.length && now-lastTyping>50){
+        typingCursor++;lastTyping=now;
+        textBox.innerHTML=`<span style="color:hsl(${typingCursor*10%360},100%,80%)">${typingText.slice(0,typingCursor)}</span>`+((Math.floor(now/500)%2===0)?" |":"");
+        spawnHeart(mouseX,mouseY,false);
+    }else if(typingCursor>=typingText.length){textBox.innerHTML=typingText;}
+}
+function nextLine(){lineIndex=(lineIndex+1)%LINES.length;typingText=LINES[lineIndex];typingCursor=0;lastTyping=Date.now();setTimeout(nextLine,Math.max(2000,typingText.length*50+1200));}
+
+// --------------------- 动画循环 ---------------------
 function animate(){
     ctx.clearRect(0,0,W,H);
-    let now = Date.now();
-    if(now - lastSpawn > HEART_SPAWN_INTERVAL){
-        spawnHeart();
-        lastSpawn = now;
-    }
+    updateStars();
+    if(Date.now()-lastSpawn>400){spawnHeart();lastSpawn=Date.now();}
     updateHearts();
+    updateFireworks();
     updateTyping();
     requestAnimationFrame(animate);
 }
@@ -176,13 +167,7 @@ function animate(){
 nextLine();
 animate();
 
-window.addEventListener("resize", ()=>{
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W;
-    canvas.height = H;
-});
+window.addEventListener("resize",()=>{W=window.innerWidth;H=window.innerHeight;canvas.width=W;canvas.height=H;});
 </script>
-
 </body>
 </html>
