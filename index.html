@@ -55,6 +55,7 @@ let lastTyping=Date.now();
 
 const textBox=document.getElementById("textBox");
 const bgm=document.getElementById("bgm");
+const pop=document.getElementById("pop");
 
 let mouseX=W/2,mouseY=H/2;
 document.addEventListener("mousemove",e=>{mouseX=e.clientX;mouseY=e.clientY;});
@@ -63,11 +64,8 @@ document.body.addEventListener('click',()=>{
     bgm.play();
     spawnHeart(mouseX,mouseY,true);
     spawnFirework(mouseX,mouseY);
+    pop.play();
 });
-
-window.onload(() => {
-    bgm.play();
-})
 
 // --------------------- 辅助函数 ---------------------
 function random(min,max){return Math.random()*(max-min)+min;}
