@@ -1,14 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>First Page</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光棍节快乐</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #0f1724;
+        font-family: "Helvetica", sans-serif;
+    }
+    #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    #textBox {
+        position: absolute;
+        top: 50px;
+        width: 100%;
+        text-align: center;
+        color: #ffd6e0;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #cta {
+        position: absolute;
+        bottom: 60px;
+        width: 100%;
+        text-align: center;
+        color: #ffcbe6;
+        font-size: 18px;
+        font-style: italic;
+    }
+    #double11 {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        font-size: 22px;
+        font-weight: bold;
+        color: #ffd6e0;
+    }
+</style>
 </head>
 <body>
-    <h2>This is my first page</h2>
-    <script src="main.js"></script>
+
+<canvas id="canvas"></canvas>
+<div id="textBox"></div>
+<div id="double11">双 1 1</div>
+<div id="cta">光棍节快乐</div>
+
+<audio id="bgm" src="7537318707513625363.mp3" loop></audio>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let W = window.innerWidth;
+let H = window.innerHeight;
+canvas.width = W;
+canvas.height = H;
+
+// ---------------- 配置 ----------------
+const TARGET_NAME = "王菲菲";
+const LINES = [
+    `单身节快乐，${TARGET_NAME}～`,
+    "单着呢",
+    "哈哈哈哈哈哈",
+    "你最美",
+    "你最帅",
+    "你是超级无敌大可爱",
+    "骗你的",
+    "祝你早日脱单，不急,,,,,,哈哈哈哈哈哈",
+    "别想脱单了，咱们这种人，一看就要陪彼此到80岁",
+    "😉"
+];
+const HEART_COLOR = "rgb(255,90,140)";
+const MAX_HEARTS = 20;
+const HEART_SPAWN_INTERVAL = 600; // 毫秒
+const TYPING_SPEED = 50; // ms per char
+// ---------------------------------------
+
+let hearts = [];
+let lastSpawn = Date.now();
+let lineIndex = 0;
+let typingCursor = 0;
+let typingText = LINES[lineIndex];
+let lastTyping = Date.now();
+
+const textBox = document.getElementById("textBox");
+const bgm = document.getElementById("bgm");
+
+document.body.addEventListener('click', ()=>{ bgm.play(); }); // 微信需要用户点击才能播放
+
+function random(min,max){
+    return Math.random()*(max-min)+min;
+}
+
+function drawHeart(x, y, size, color){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size, size);
+    ctx.beginPath();
+    for(let t=0;t<Math.PI*2;t+=0.2){
+        let xt = 16*Math.pow(Math.sin(t),3);
+        let yt = -(13*Math.cos(t) -5*Math.cos(2*t) -2*Math.cos(3*t) - Math.cos(4*t));
+        ctx.lineTo(xt, yt);
+    }
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+}
+
+function spawnHeart(){
+    if(hearts.length >= MAX_HEARTS) return;
+    hearts.push({
+        x: random(80, W-80),
+        y: H-50,
+        size: random(0.6,1.2),
+        vy: random(-1.8, -0.9),
+        wiggle: random(10,40),
+        phase: random()*Math.PI*2,
+        birth: Date.now(),
+        life: random(5000,9000)
+    });
+}
+
+function updateHearts(){
+    let now = Date.now();
+    hearts = hearts.filter(h=>{
+        let age = now - h.birth;
+        if(age>h.life) return false;
+        h.phase += 0.05;
+        h.x += Math.sin(h.phase*1.8)*h.wiggle*0.05;
+        h.y += h.vy*3;
+        let alpha = 1 - age/h.life;
+        drawHeart(h.x, h.y, h.size, `rgba(255,90,140,${alpha})`);
+        return true;
+    });
+}
+
+function updateTyping(){
+    let now = Date.now();
+    if(typingCursor < typingText.length && now - lastTyping > TYPING_SPEED){
+        typingCursor++;
+        lastTyping = now;
+        textBox.innerText = typingText.slice(0, typingCursor) + ((Math.floor(now/500)%2===0)?" |":"");
+    } else if(typingCursor >= typingText.length){
+        textBox.innerText = typingText;
+    }
+}
+
+function nextLine(){
+    lineIndex = (lineIndex+1)%LINES.length;
+    typingText = LINES[lineIndex];
+    typingCursor = 0;
+    lastTyping = Date.now();
+    setTimeout(nextLine, Math.max(2000, typingText.length*TYPING_SPEED + 1200));
+}
+
+function animate(){
+    ctx.clearRect(0,0,W,H);
+    let now = Date.now();
+    if(now - lastSpawn > HEART_SPAWN_INTERVAL){
+        spawnHeart();
+        lastSpawn = now;
+    }
+    updateHearts();
+    updateTyping();
+    requestAnimationFrame(animate);
+}
+
+nextLine();
+animate();
+
+window.addEventListener("resize", ()=>{
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+});
+</script>
+
 </body>
 </html>
