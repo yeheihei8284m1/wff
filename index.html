@@ -339,6 +339,71 @@
     color: #856404;
     line-height: 1.7;
   }
+
+  /* 极端仓位保护卖出提醒 */
+  .sell-alert-box {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5b7b1 100%);
+    border: 2px solid #e74c3c;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 15px;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
+  }
+  .sell-alert-box .sell-title {
+    color: #721c24;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sell-alert-box .sell-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+  }
+  @media (max-width: 700px) { .sell-alert-box .sell-grid { grid-template-columns: 1fr; } }
+  .sell-item {
+    background: rgba(255,255,255,0.85);
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e74c3c;
+  }
+  .sell-item .sell-name { font-size: 13px; color: #721c24; margin-bottom: 6px; }
+  .sell-item .sell-amount {
+    font-size: 22px;
+    font-weight: bold;
+    color: #c0392b;
+    margin-bottom: 4px;
+  }
+  .sell-item .sell-detail { font-size: 11px; color: #8b3a3a; line-height: 1.6; }
+  .sell-safe {
+    background: rgba(39,174,96,0.15);
+    border-color: #27ae60;
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #27ae60;
+  }
+  .sell-safe .sell-name { font-size: 13px; color: #27ae60; margin-bottom: 6px; }
+  .sell-safe .sell-amount { font-size: 14px; color: #27ae60; font-weight: bold; }
+  .result-item.sell-triggered {
+    border-top-color: #e74c3c !important;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    box-shadow: 0 0 0 2px rgba(231,76,60,0.3);
+  }
+  .result-item.sell-triggered .title::after {
+    content: ' ⚠ 需卖出';
+    color: #e74c3c;
+    font-size: 11px;
+  }
 </style>
 </head>
 <body>
@@ -518,17 +583,17 @@
       </div>
 
       <div class="result-grid">
-        <div class="result-item sp500">
+        <div class="result-item sp500" id="result_sp500_card">
           <div class="title">买入 标普500</div>
           <div class="amount" id="buy_sp500">—</div>
           <div class="desc" id="buy_sp500_desc">—</div>
         </div>
-        <div class="result-item a500">
+        <div class="result-item a500" id="result_a500_card">
           <div class="title">买入 A500</div>
           <div class="amount" id="buy_a500">—</div>
           <div class="desc" id="buy_a500_desc">—</div>
         </div>
-        <div class="result-item gem">
+        <div class="result-item gem" id="result_gem_card">
           <div class="title">买入 创业板</div>
           <div class="amount" id="buy_gem">—</div>
           <div class="desc" id="buy_gem_desc">—</div>
@@ -539,6 +604,9 @@
           <div class="desc" id="buy_cash_desc">—</div>
         </div>
       </div>
+
+      <!-- 极端仓位保护卖出提醒 -->
+      <div id="sell_alert" style="display:none;"></div>
 
       <div class="section-title"><span><span class="step-num">4</span>当前仓位状态</span></div>
       <div class="position-status" id="position_status"></div>
@@ -943,6 +1011,90 @@ function calculate() {
     oppDistance.innerHTML = '';
   }
 
+  // === 极端仓位保护卖出策略 ===
+  // 标普500/A500：当前比例>60% → 降低至60%
+  // 创业板：当前比例>25% → 降低至15%
+  const sellAlert = document.getElementById('sell_alert');
+  const resultSp500Card = document.getElementById('result_sp500_card');
+  const resultA500Card = document.getElementById('result_a500_card');
+  const resultGemCard = document.getElementById('result_gem_card');
+  resultSp500Card.classList.remove('sell-triggered');
+  resultA500Card.classList.remove('sell-triggered');
+  resultGemCard.classList.remove('sell-triggered');
+
+  const sells = []; // {name, ratio, threshold, sellAmount, targetRatio, targetAmount, safe}
+
+  // 标普500
+  if (totalValue > 0) {
+    if (sp500Ratio > 0.60) {
+      const sellAmount = sp500Value - totalValue * 0.60;
+      sells.push({
+        name: '标普500', prefix: 'sp500',
+        ratio: sp500Ratio, threshold: 0.60,
+        sellAmount, targetRatio: 0.60, targetAmount: totalValue * 0.60,
+        currentAmount: sp500Value, safe: false
+      });
+      resultSp500Card.classList.add('sell-triggered');
+    } else {
+      sells.push({ name: '标普500', prefix: 'sp500', ratio: sp500Ratio, safe: true });
+    }
+    if (a500Ratio > 0.60) {
+      const sellAmount = a500Value - totalValue * 0.60;
+      sells.push({
+        name: 'A500', prefix: 'a500',
+        ratio: a500Ratio, threshold: 0.60,
+        sellAmount, targetRatio: 0.60, targetAmount: totalValue * 0.60,
+        currentAmount: a500Value, safe: false
+      });
+      resultA500Card.classList.add('sell-triggered');
+    } else {
+      sells.push({ name: 'A500', prefix: 'a500', ratio: a500Ratio, safe: true });
+    }
+    if (gemRatio > 0.25) {
+      const sellAmount = gemValue - totalValue * 0.15;
+      sells.push({
+        name: '创业板', prefix: 'gem',
+        ratio: gemRatio, threshold: 0.25,
+        sellAmount, targetRatio: 0.15, targetAmount: totalValue * 0.15,
+        currentAmount: gemValue, safe: false
+      });
+      resultGemCard.classList.add('sell-triggered');
+    } else {
+      sells.push({ name: '创业板', prefix: 'gem', ratio: gemRatio, safe: true });
+    }
+  }
+
+  const triggeredSells = sells.filter(s => !s.safe);
+  if (triggeredSells.length > 0) {
+    const totalSellAmount = triggeredSells.reduce((s, x) => s + x.sellAmount, 0);
+    sellAlert.style.display = 'block';
+    sellAlert.className = 'sell-alert-box';
+    sellAlert.innerHTML = `
+      <div class="sell-title">⚠️ 极端仓位保护 · 触发卖出（组合结构严重失衡）</div>
+      <p style="font-size:13px;color:#721c24;margin-bottom:10px;">
+        卖出不是因为贵，而是因为组合结构严重失衡。请按以下金额卖出并转为现金，等待重新平衡。
+      </p>
+      <div class="sell-grid">
+        ${sells.map(s => s.safe
+          ? `<div class="sell-safe"><div class="sell-name">${s.name}</div><div class="sell-amount">${(s.ratio*100).toFixed(1)}% · 正常持有</div></div>`
+          : `<div class="sell-item">
+              <div class="sell-name">${s.name} 当前 ${(s.ratio*100).toFixed(1)}% &gt; ${(s.threshold*100).toFixed(0)}%</div>
+              <div class="sell-amount">卖出 ${Math.round(s.sellAmount).toLocaleString()} 元</div>
+              <div class="sell-detail">
+                当前 ${Math.round(s.currentAmount).toLocaleString()} 元<br>
+                → 降至 ${(s.targetRatio*100).toFixed(0)}% = ${Math.round(s.targetAmount).toLocaleString()} 元
+              </div>
+            </div>`
+        ).join('')}
+      </div>
+      <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.6);border-radius:6px;font-size:13px;color:#721c24;">
+        <strong>合计卖出：${Math.round(totalSellAmount).toLocaleString()} 元</strong> · 卖出资金转入现金池
+      </div>
+    `;
+  } else {
+    sellAlert.style.display = 'none';
+  }
+
   // === 操作建议 ===
   let actionText = '';
   const totalBuy = buySp500 + buyA500 + buyGem;
@@ -974,6 +1126,15 @@ function calculate() {
   if (sp500Ratio < 0.35) actionText += `\n💡 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 低于35%，属于低配，优先买入。`;
   if (a500Ratio < 0.35) actionText += `\n💡 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 低于35%，属于低配，优先买入。`;
   if (gemRatio < 0.05) actionText += `\n💡 创业板当前仓位 ${(gemRatio*100).toFixed(1)}% 低于5%，属于低配，优先买入。`;
+
+  // 卖出策略提示
+  if (triggeredSells.length > 0) {
+    actionText += `\n\n🚨【极端仓位保护·已触发卖出】\n`;
+    triggeredSells.forEach(s => {
+      actionText += `· ${s.name}：当前 ${(s.ratio*100).toFixed(1)}% 超过 ${(s.threshold*100).toFixed(0)}%，卖出 ${Math.round(s.sellAmount).toLocaleString()} 元（降至 ${(s.targetRatio*100).toFixed(0)}%）\n`;
+    });
+    actionText += `卖出资金转入现金池，优先补低配资产。`;
+  }
 
   document.getElementById('action_text').textContent = actionText;
 
