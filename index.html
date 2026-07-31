@@ -410,8 +410,16 @@
           <input type="number" id="sp500_pb_pct" step="0.1" placeholder="例如: 65">
         </div>
         <div class="form-group">
-          <label>距历史高点跌幅 (%)</label>
-          <input type="number" id="sp500_drop" step="0.1" placeholder="例如: 12">
+          <label>历史最高点价格</label>
+          <input type="number" id="sp500_high" step="0.01" placeholder="例如: 6000" oninput="updateDrop('sp500')">
+        </div>
+        <div class="form-group">
+          <label>当前价格</label>
+          <input type="number" id="sp500_current" step="0.01" placeholder="例如: 5280" oninput="updateDrop('sp500')">
+        </div>
+        <div class="form-group">
+          <label>距历史高点跌幅 (%) <small style="color:#27ae60;">自动计算</small></label>
+          <input type="number" id="sp500_drop" step="0.1" placeholder="自动计算" readonly style="background:#f0f7ff;color:#2c3e50;font-weight:bold;">
         </div>
         <div class="score-box">
           <div class="label">综合评分</div>
@@ -432,8 +440,16 @@
           <input type="number" id="a500_pb_pct" step="0.1" placeholder="例如: 25">
         </div>
         <div class="form-group">
-          <label>距历史高点跌幅 (%)</label>
-          <input type="number" id="a500_drop" step="0.1" placeholder="例如: 18">
+          <label>历史最高点价格</label>
+          <input type="number" id="a500_high" step="0.01" placeholder="例如: 1.2" oninput="updateDrop('a500')">
+        </div>
+        <div class="form-group">
+          <label>当前价格</label>
+          <input type="number" id="a500_current" step="0.01" placeholder="例如: 0.98" oninput="updateDrop('a500')">
+        </div>
+        <div class="form-group">
+          <label>距历史高点跌幅 (%) <small style="color:#27ae60;">自动计算</small></label>
+          <input type="number" id="a500_drop" step="0.1" placeholder="自动计算" readonly style="background:#f0f7ff;color:#2c3e50;font-weight:bold;">
         </div>
         <div class="score-box">
           <div class="label">综合评分</div>
@@ -454,8 +470,16 @@
           <input type="number" id="gem_pb_pct" step="0.1" placeholder="例如: 20">
         </div>
         <div class="form-group">
-          <label>距历史高点跌幅 (%)</label>
-          <input type="number" id="gem_drop" step="0.1" placeholder="例如: 35">
+          <label>历史最高点价格</label>
+          <input type="number" id="gem_high" step="0.01" placeholder="例如: 3.5" oninput="updateDrop('gem')">
+        </div>
+        <div class="form-group">
+          <label>当前价格</label>
+          <input type="number" id="gem_current" step="0.01" placeholder="例如: 2.27" oninput="updateDrop('gem')">
+        </div>
+        <div class="form-group">
+          <label>距历史高点跌幅 (%) <small style="color:#27ae60;">自动计算</small></label>
+          <input type="number" id="gem_drop" step="0.1" placeholder="自动计算" readonly style="background:#f0f7ff;color:#2c3e50;font-weight:bold;">
         </div>
         <div class="score-box">
           <div class="label">综合评分</div>
@@ -604,6 +628,21 @@ function updateTotalAsset() {
     display.textContent = '—';
     detail.textContent = '输入期数自动计算';
   }
+}
+
+// === 根据最高点价格和当前价格自动计算跌幅 ===
+function updateDrop(prefix) {
+  const high = parseFloat(document.getElementById(prefix + '_high').value);
+  const current = parseFloat(document.getElementById(prefix + '_current').value);
+  const dropInput = document.getElementById(prefix + '_drop');
+  if (!isNaN(high) && !isNaN(current) && high > 0) {
+    const drop = ((high - current) / high) * 100;
+    dropInput.value = drop.toFixed(2);
+  } else {
+    dropInput.value = '';
+  }
+  // 同步更新评分预览
+  updateScorePreview();
 }
 
 // === 评分→资金系数 ===
@@ -973,9 +1012,9 @@ function updateScorePreview() {
 // 所有需要缓存的输入框ID
 const INPUT_IDS = [
   'periods', 'sp500_value', 'a500_value', 'gem_value',
-  'sp500_pe', 'sp500_pb_pct', 'sp500_drop',
-  'a500_pe_pct', 'a500_pb_pct', 'a500_drop',
-  'gem_pe_pct', 'gem_pb_pct', 'gem_drop'
+  'sp500_pe', 'sp500_pb_pct', 'sp500_high', 'sp500_current', 'sp500_drop',
+  'a500_pe_pct', 'a500_pb_pct', 'a500_high', 'a500_current', 'a500_drop',
+  'gem_pe_pct', 'gem_pb_pct', 'gem_high', 'gem_current', 'gem_drop'
 ];
 const STORAGE_KEY = 'etf_calculator_v6_inputs';
 
@@ -1001,6 +1040,8 @@ function loadInputs() {
       const el = document.getElementById(id);
       if (el && data[id] !== undefined) el.value = data[id];
     });
+    // 恢复后重新计算跌幅（依赖最高点价格和当前价格）
+    ['sp500', 'a500', 'gem'].forEach(prefix => updateDrop(prefix));
   } catch (e) {}
 }
 
@@ -1013,6 +1054,7 @@ function clearInputs() {
     if (el) el.value = '';
   });
   updateTotalAsset();
+  ['sp500', 'a500', 'gem'].forEach(prefix => updateDrop(prefix));
   ['sp500_score','a500_score','gem_score'].forEach(id => {
     document.getElementById(id).textContent = '—';
   });
