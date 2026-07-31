@@ -410,7 +410,7 @@
 <div class="container">
   <div class="header">
     <h1>ETF动态资产配置计算器 V6</h1>
-    <p>资产配置决定方向 · 估值决定力度 · 跌幅决定机会 · 45%标普 + 45%A500 + 10%创业板</p>
+    <p>资产配置决定方向 · 估值决定力度 · 跌幅决定机会 · 55%标普 + 35%A500 + 10%创业板</p>
   </div>
 
   <div class="content">
@@ -660,11 +660,11 @@
 
       <div class="section-title">长期目标配置比例</div>
       <div class="alloc-bar">
-        <div class="alloc-sp500" style="width:45%;">标普500 45%</div>
-        <div class="alloc-a500" style="width:45%;">A500 45%</div>
+        <div class="alloc-sp500" style="width:55%;">标普500 55%</div>
+        <div class="alloc-a500" style="width:35%;">A500 35%</div>
         <div class="alloc-gem" style="width:10%;">创业板 10%</div>
       </div>
-      <p style="font-size:12px;color:#888;">警戒范围：标普/A500 35%-55% ｜ 创业板 5%-15% ｜ 偏离目标±10%启动再平衡</p>
+      <p style="font-size:12px;color:#888;">警戒范围：标普 45%-65% ｜ A500 25%-45% ｜ 创业板 5%-15% ｜ 偏离目标±10%启动再平衡</p>
 
       <div class="footer-note">
         <strong>执行原则：</strong><br>
@@ -679,9 +679,9 @@
 
 <script>
 // === 配置 ===
-const TARGET = { sp500: 0.45, a500: 0.45, gem: 0.10 };
+const TARGET = { sp500: 0.55, a500: 0.35, gem: 0.10 };
 const MONTHLY_BUDGET = 3000;
-const BASE = { sp500: 1350, a500: 1350, gem: 300 }; // 基础资金
+const BASE = { sp500: 1650, a500: 1050, gem: 300 }; // 基础资金
 
 // === 根据期数自动计算总资产 ===
 function updateTotalAsset() {
@@ -923,8 +923,8 @@ function calculate() {
     </div>`;
   };
   posStatus.innerHTML =
-    checkPos('标普500', sp500Ratio, TARGET.sp500, 0.35, 0.55) +
-    checkPos('A500', a500Ratio, TARGET.a500, 0.35, 0.55) +
+    checkPos('标普500', sp500Ratio, TARGET.sp500, 0.45, 0.65) +
+    checkPos('A500', a500Ratio, TARGET.a500, 0.25, 0.45) +
     checkPos('创业板', gemRatio, TARGET.gem, 0.05, 0.15);
 
   // === 明细表 ===
@@ -1119,12 +1119,12 @@ function calculate() {
   if (buyGem > 0) actionText += `· 创业板：${buyGem} 元\n`;
 
   // 仓位偏离提示
-  if (sp500Ratio > 0.55) actionText += `\n📌 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 超过55%警戒线，建议停止买入标普500，资金优先补低配资产。`;
-  if (a500Ratio > 0.55) actionText += `\n📌 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 超过55%警戒线，建议停止买入A500。`;
+  if (sp500Ratio > 0.65) actionText += `\n📌 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 超过65%警戒线，建议停止买入标普500，资金优先补低配资产。`;
+  if (a500Ratio > 0.45) actionText += `\n📌 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 超过45%警戒线，建议停止买入A500。`;
   if (gemRatio > 0.15) actionText += `\n📌 创业板当前仓位 ${(gemRatio*100).toFixed(1)}% 超过15%警戒线，建议停止买入创业板。`;
 
-  if (sp500Ratio < 0.35) actionText += `\n💡 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 低于35%，属于低配，优先买入。`;
-  if (a500Ratio < 0.35) actionText += `\n💡 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 低于35%，属于低配，优先买入。`;
+  if (sp500Ratio < 0.45) actionText += `\n💡 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 低于45%，属于低配，优先买入。`;
+  if (a500Ratio < 0.25) actionText += `\n💡 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 低于25%，属于低配，优先买入。`;
   if (gemRatio < 0.05) actionText += `\n💡 创业板当前仓位 ${(gemRatio*100).toFixed(1)}% 低于5%，属于低配，优先买入。`;
 
   // 卖出策略提示
