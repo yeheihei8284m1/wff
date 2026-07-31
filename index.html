@@ -3,46 +3,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ETF资产配置资金分配计算器 V2</title>
+<title>ETF动态资产配置计算器 V6</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
     min-height: 100vh;
     padding: 20px;
     color: #333;
   }
   .container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
     background: #fff;
     border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     overflow: hidden;
   }
   .header {
-    background: linear-gradient(135deg, #2c3e50 0%, #4a6079 100%);
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
     color: #fff;
-    padding: 30px 40px;
+    padding: 32px 40px;
   }
-  .header h1 { font-size: 24px; margin-bottom: 8px; }
+  .header h1 { font-size: 26px; margin-bottom: 8px; letter-spacing: 1px; }
   .header p { opacity: 0.85; font-size: 14px; }
   .content { padding: 30px 40px; }
 
   .section-title {
     font-size: 18px;
     color: #2c3e50;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #e74c3c;
     padding-left: 12px;
-    margin: 25px 0 15px;
-    font-weight: 600;
+    margin: 28px 0 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
   .section-title small {
     font-size: 12px;
     color: #888;
     font-weight: normal;
-    margin-left: 8px;
+  }
+  .section-title .badge {
+    background: #e74c3c;
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-weight: normal;
+  }
+
+  .step-num {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 13px;
+    margin-right: 8px;
   }
 
   .input-grid {
@@ -51,30 +74,30 @@
     gap: 15px;
     margin-bottom: 20px;
   }
-  @media (max-width: 900px) {
-    .input-grid { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 500px) {
-    .input-grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 900px) { .input-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 500px) { .input-grid { grid-template-columns: 1fr; } }
 
   .input-card {
     background: #f8f9fc;
     border: 1px solid #e4e8f0;
     border-radius: 10px;
-    padding: 15px;
+    padding: 16px;
   }
   .input-card h4 {
     font-size: 14px;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #e4e8f0;
+    border-bottom: 2px solid;
     color: #2c3e50;
   }
   .input-card.sp500 { border-top: 3px solid #3498db; }
+  .input-card.sp500 h4 { border-bottom-color: #3498db; }
   .input-card.a500 { border-top: 3px solid #e74c3c; }
+  .input-card.a500 h4 { border-bottom-color: #e74c3c; }
   .input-card.gem { border-top: 3px solid #27ae60; }
+  .input-card.gem h4 { border-bottom-color: #27ae60; }
   .input-card.total { border-top: 3px solid #9b59b6; }
+  .input-card.total h4 { border-bottom-color: #9b59b6; }
 
   .form-group { margin-bottom: 10px; }
   .form-group label {
@@ -83,6 +106,7 @@
     color: #555;
     margin-bottom: 4px;
   }
+  .form-group label small { color: #999; font-weight: normal; }
   .form-group input {
     width: 100%;
     padding: 7px 10px;
@@ -93,9 +117,26 @@
   }
   .form-group input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 2px rgba(102,126,234,0.1);
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231,76,60,0.1);
   }
+
+  .score-box {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fff;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px dashed #ccc;
+  }
+  .score-box .label { font-size: 11px; color: #888; }
+  .score-box .value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 2px 0;
+  }
+  .score-box .detail { font-size: 10px; color: #999; }
 
   .result-panel {
     background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
@@ -110,9 +151,7 @@
     gap: 15px;
     margin-bottom: 20px;
   }
-  @media (max-width: 900px) {
-    .result-grid { grid-template-columns: 1fr 1fr; }
-  }
+  @media (max-width: 900px) { .result-grid { grid-template-columns: 1fr 1fr; } }
 
   .result-item {
     background: #fff;
@@ -133,7 +172,7 @@
     color: #2c3e50;
     margin-bottom: 4px;
   }
-  .result-item .amount.zero { color: #999; }
+  .result-item .amount.zero { color: #bbb; }
   .result-item .desc { font-size: 11px; color: #666; }
 
   .detail-table {
@@ -151,18 +190,85 @@
     border-bottom: 1px solid #eef0f5;
   }
   .detail-table th {
-    background: #f8f9fc;
-    color: #555;
+    background: #2c3e50;
+    color: #fff;
     font-weight: 600;
   }
   .detail-table td.label {
     text-align: left;
     font-weight: 600;
     color: #2c3e50;
+    background: #f8f9fc;
   }
-  .detail-table .positive { color: #27ae60; }
-  .detail-table .negative { color: #e74c3c; }
-  .detail-table .highlight { background: #fff8e1; }
+  .detail-table .highlight { background: #fff8e1; font-weight: bold; }
+  .detail-table .warn { color: #e74c3c; font-weight: bold; }
+  .detail-table .ok { color: #27ae60; font-weight: bold; }
+
+  .position-status {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 15px 0;
+  }
+  @media (max-width: 700px) { .position-status { grid-template-columns: 1fr; } }
+  .pos-item {
+    background: #fff;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    border-left: 4px solid #ccc;
+  }
+  .pos-item.normal { border-left-color: #27ae60; }
+  .pos-item.over { border-left-color: #e74c3c; }
+  .pos-item.under { border-left-color: #3498db; }
+  .pos-item .pos-name { font-size: 13px; color: #555; margin-bottom: 4px; }
+  .pos-item .pos-val { font-size: 18px; font-weight: bold; color: #2c3e50; }
+  .pos-item .pos-target { font-size: 11px; color: #999; }
+
+  .opportunity-panel {
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid;
+  }
+  .opportunity-panel.waiting {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-color: #f0d57a;
+  }
+  .opportunity-panel.alert {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5b7b1 100%);
+    border-color: #e74c3c;
+  }
+  .opportunity-panel.active {
+    background: linear-gradient(135deg, #d4edda 0%, #abebc6 100%);
+    border-color: #27ae60;
+  }
+  .opportunity-panel h3 { margin-bottom: 12px; font-size: 16px; }
+  .opportunity-panel.waiting h3 { color: #856404; }
+  .opportunity-panel.alert h3 { color: #721c24; }
+  .opportunity-panel.active h3 { color: #155724; }
+
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media (max-width: 700px) { .phase-grid { grid-template-columns: 1fr; } }
+  .phase {
+    background: rgba(255,255,255,0.7);
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    border: 2px solid transparent;
+  }
+  .phase.triggered {
+    background: rgba(39,174,96,0.3);
+    border-color: #27ae60;
+  }
+  .phase .phase-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+  .phase .phase-cond { font-size: 11px; color: #666; margin-bottom: 4px; }
+  .phase .phase-amount { font-size: 16px; font-weight: bold; color: #2c3e50; }
 
   .recommendation {
     background: #fff;
@@ -172,17 +278,26 @@
     margin-top: 15px;
   }
   .recommendation h4 { color: #2c3e50; margin-bottom: 8px; }
-  .recommendation p { font-size: 13px; line-height: 1.7; color: #555; }
+  .recommendation p { font-size: 13px; line-height: 1.7; color: #555; white-space: pre-line; }
 
-  .bonus-panel {
-    background: linear-gradient(135deg, #d4edda 0%, #abebc6 100%);
-    border: 1px solid #27ae60;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 15px;
+  .btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #fff;
+    border: none;
+    padding: 14px 40px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: block;
+    margin: 25px auto 0;
+    font-weight: 700;
+    letter-spacing: 1px;
   }
-  .bonus-panel h4 { color: #155724; margin-bottom: 8px; font-size: 14px; }
-  .bonus-panel p { font-size: 12px; color: #155724; line-height: 1.6; }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231,76,60,0.4);
+  }
 
   .alloc-bar {
     display: flex;
@@ -203,38 +318,17 @@
   .alloc-a500 { background: #e74c3c; }
   .alloc-gem { background: #27ae60; }
 
-  .btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    border: none;
-    padding: 12px 36px;
-    font-size: 15px;
+  .formula-box {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 15px;
     border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: block;
-    margin: 20px auto 0;
-    font-weight: 600;
+    margin: 12px 0;
+    font-family: "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.8;
   }
-  .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102,126,234,0.4);
-  }
-
-  .score-scale {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-    font-size: 11px;
-    flex-wrap: wrap;
-  }
-  .scale-item {
-    padding: 4px 8px;
-    border-radius: 4px;
-    background: #fff;
-    border: 1px solid #ddd;
-  }
-  .scale-item .mult { font-weight: bold; }
+  .formula-box .hl { color: #f1c40f; }
 
   .footer-note {
     margin-top: 20px;
@@ -243,41 +337,50 @@
     border-radius: 8px;
     font-size: 12px;
     color: #856404;
-    line-height: 1.6;
+    line-height: 1.7;
   }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>ETF资产配置资金分配计算器 V2</h1>
-    <p>目标比例 + 估值评分 + 偏离修正 · 三合一模型</p>
+    <h1>ETF动态资产配置计算器 V6</h1>
+    <p>资产配置决定方向 · 估值决定力度 · 跌幅决定机会 · 45%标普 + 45%A500 + 10%创业板</p>
   </div>
 
   <div class="content">
 
-    <div class="section-title">第一步：输入账户数据 <small>每月月底执行一次</small></div>
+    <!-- 输入区 -->
+    <div class="section-title">
+      <span><span class="step-num">1</span>输入账户持仓</span>
+      <small>每月固定日期执行</small>
+    </div>
 
     <div class="input-grid">
       <div class="input-card total">
         <h4>账户总览</h4>
         <div class="form-group">
-          <label>账户股票总资产（元）</label>
-          <input type="number" id="total_asset" step="100" placeholder="例如: 100000">
+          <label>期数 <small>（已投入月数）</small></label>
+          <input type="number" id="periods" min="0" step="1" placeholder="例如: 36" oninput="updateTotalAsset()">
+        </div>
+        <div class="score-box">
+          <div class="label">应投总资产（期数×3000）</div>
+          <div class="value" id="total_asset_display">—</div>
+          <div class="detail" id="total_asset_detail">输入期数自动计算</div>
         </div>
       </div>
       <div class="input-card sp500">
         <h4>标普500 ETF</h4>
         <div class="form-group">
           <label>当前市值（元）</label>
-          <input type="number" id="sp500_value" step="100" placeholder="例如: 50000">
+          <input type="number" id="sp500_value" step="100" placeholder="例如: 52000">
         </div>
       </div>
       <div class="input-card a500">
         <h4>中证A500 ETF</h4>
         <div class="form-group">
           <label>当前市值（元）</label>
-          <input type="number" id="a500_value" step="100" placeholder="例如: 40000">
+          <input type="number" id="a500_value" step="100" placeholder="例如: 38000">
         </div>
       </div>
       <div class="input-card gem">
@@ -289,51 +392,106 @@
       </div>
     </div>
 
-    <div class="section-title">第二步：输入各资产评分 <small>0~100分</small></div>
+    <div class="section-title">
+      <span><span class="step-num">2</span>输入市场数据</span>
+      <small>估值 60% + 跌幅 40% = 综合评分</small>
+    </div>
 
     <div class="input-grid">
-      <div class="input-card total">
-        <h4>评分说明</h4>
-        <div class="score-scale">
-          <div class="scale-item">90-100 极度低估 <span class="mult">×1.5</span></div>
-          <div class="scale-item">75-90 偏低估 <span class="mult">×1.25</span></div>
-          <div class="scale-item">50-75 正常 <span class="mult">×1</span></div>
-          <div class="scale-item">30-50 偏贵 <span class="mult">×0.5</span></div>
-          <div class="scale-item">0-30 极贵 <span class="mult">×0</span></div>
-        </div>
-      </div>
+      <!-- 标普500 -->
       <div class="input-card sp500">
-        <h4>标普500评分</h4>
+        <h4>标普500 市场数据</h4>
         <div class="form-group">
-          <label>评分（0-100）</label>
-          <input type="number" id="sp500_score" min="0" max="100" placeholder="例如: 70">
+          <label>当前 PE <small>（绝对值）</small></label>
+          <input type="number" id="sp500_pe" step="0.1" placeholder="例如: 22.5">
         </div>
         <div class="form-group">
-          <label>距高点跌幅(%) <small>触发低估奖励</small></label>
-          <input type="number" id="sp500_drop" step="0.1" placeholder="例如: 30">
+          <label>PB历史百分位 (%)</label>
+          <input type="number" id="sp500_pb_pct" step="0.1" placeholder="例如: 65">
+        </div>
+        <div class="form-group">
+          <label>距历史高点跌幅 (%)</label>
+          <input type="number" id="sp500_drop" step="0.1" placeholder="例如: 12">
+        </div>
+        <div class="score-box">
+          <div class="label">综合评分</div>
+          <div class="value" id="sp500_score">—</div>
+          <div class="detail" id="sp500_detail">PE0 + PB0 + 跌幅0</div>
         </div>
       </div>
+
+      <!-- A500 -->
       <div class="input-card a500">
-        <h4>中证A500评分</h4>
+        <h4>中证A500 市场数据</h4>
         <div class="form-group">
-          <label>评分（0-100）</label>
-          <input type="number" id="a500_score" min="0" max="100" placeholder="例如: 60">
+          <label>PE历史百分位 (%)</label>
+          <input type="number" id="a500_pe_pct" step="0.1" placeholder="例如: 35">
+        </div>
+        <div class="form-group">
+          <label>PB历史百分位 (%)</label>
+          <input type="number" id="a500_pb_pct" step="0.1" placeholder="例如: 25">
+        </div>
+        <div class="form-group">
+          <label>距历史高点跌幅 (%)</label>
+          <input type="number" id="a500_drop" step="0.1" placeholder="例如: 18">
+        </div>
+        <div class="score-box">
+          <div class="label">综合评分</div>
+          <div class="value" id="a500_score">—</div>
+          <div class="detail" id="a500_detail">PE0 + PB0 + 跌幅0</div>
         </div>
       </div>
+
+      <!-- 创业板 -->
       <div class="input-card gem">
-        <h4>创业板评分</h4>
+        <h4>创业板 市场数据</h4>
         <div class="form-group">
-          <label>评分（0-100）</label>
-          <input type="number" id="gem_score" min="0" max="100" placeholder="例如: 50">
+          <label>PE历史百分位 (%)</label>
+          <input type="number" id="gem_pe_pct" step="0.1" placeholder="例如: 25">
+        </div>
+        <div class="form-group">
+          <label>PB历史百分位 (%)</label>
+          <input type="number" id="gem_pb_pct" step="0.1" placeholder="例如: 20">
+        </div>
+        <div class="form-group">
+          <label>距历史高点跌幅 (%)</label>
+          <input type="number" id="gem_drop" step="0.1" placeholder="例如: 35">
+        </div>
+        <div class="score-box">
+          <div class="label">综合评分</div>
+          <div class="value" id="gem_score">—</div>
+          <div class="detail" id="gem_detail">PE0 + PB0 + 跌幅0</div>
+        </div>
+      </div>
+
+      <!-- 评分说明 -->
+      <div class="input-card total">
+        <h4>评分→资金系数</h4>
+        <div style="font-size:12px;line-height:1.9;color:#555;">
+          <div>80-100分 → <strong style="color:#27ae60;">×1.5</strong></div>
+          <div>60-80分 → <strong style="color:#2ecc71;">×1.2</strong></div>
+          <div>40-60分 → <strong style="color:#f39c12;">×1.0</strong></div>
+          <div>20-40分 → <strong style="color:#e67e22;">×0.5</strong></div>
+          <div>0-20分 → <strong style="color:#e74c3c;">×0</strong></div>
+          <hr style="margin:6px 0;border:none;border-top:1px dashed #ccc;">
+          <div style="font-size:11px;color:#888;">仓位系数 = 目标比例 ÷ 当前比例</div>
+          <div style="font-size:11px;color:#888;">范围限制：0.5 ~ 1.5</div>
         </div>
       </div>
     </div>
 
-    <button class="btn" onclick="calculate()">计算本月资金分配</button>
+    <div style="text-align:center;margin:25px 0;">
+      <button class="btn" style="display:inline-block;margin:0 10px;" onclick="calculate()">计算本月资金分配</button>
+      <button class="btn" style="display:inline-block;margin:0 10px;background:linear-gradient(135deg,#7f8c8d 0%,#5a6a6b 100%);padding:12px 24px;font-size:14px;" onclick="clearInputs()">清空数据</button>
+    </div>
 
+    <!-- 结果区 -->
     <div id="result_area" style="display:none;">
 
-      <div class="section-title">本月资金分配结果 <small>月预算 3000 元</small></div>
+      <div class="section-title">
+        <span><span class="step-num">3</span>本月资金分配结果</span>
+        <span class="badge">月预算 3000 元</span>
+      </div>
 
       <div class="result-grid">
         <div class="result-item sp500">
@@ -358,7 +516,13 @@
         </div>
       </div>
 
-      <div class="section-title">计算明细</div>
+      <div class="section-title"><span><span class="step-num">4</span>当前仓位状态</span></div>
+      <div class="position-status" id="position_status"></div>
+
+      <div class="section-title"><span><span class="step-num">5</span>计算明细</span></div>
+      <div class="formula-box">
+        最终金额 = <span class="hl">基础资金</span> × <span class="hl">评分系数</span> × <span class="hl">仓位系数</span> → 按比例缩放到3000元
+      </div>
       <table class="detail-table">
         <thead>
           <tr>
@@ -371,11 +535,30 @@
         <tbody id="detail_body"></tbody>
       </table>
 
-      <div id="bonus_section" style="display:none;">
-        <div class="bonus-panel">
-          <h4>🚀 标普500 低估奖励已触发</h4>
-          <p id="bonus_text">—</p>
+      <div class="section-title">
+        <span><span class="step-num">6</span>30000元机会资金（仅标普500）</span>
+      </div>
+      <div class="opportunity-panel waiting" id="opp_panel">
+        <h3 id="opp_title">⏳ 等待极端机会</h3>
+        <p style="font-size:13px;" id="opp_desc">机会资金仅在标普500出现重大低估时使用（金融危机、流动性危机、全球恐慌）。</p>
+        <div class="phase-grid">
+          <div class="phase" id="phase1">
+            <div class="phase-title">第一阶段 普通危机</div>
+            <div class="phase-cond">跌幅≥25% 且 PE≤20</div>
+            <div class="phase-amount">投入 6000元</div>
+          </div>
+          <div class="phase" id="phase2">
+            <div class="phase-title">第二阶段 严重危机</div>
+            <div class="phase-cond">跌幅≥35% 且 PE≤18</div>
+            <div class="phase-amount">投入 12000元</div>
+          </div>
+          <div class="phase" id="phase3">
+            <div class="phase-title">第三阶段 历史级机会</div>
+            <div class="phase-cond">跌幅≥45% 且 PE≤15</div>
+            <div class="phase-amount">投入 12000元</div>
+          </div>
         </div>
+        <div id="opp_distance" style="margin-top:12px;font-size:12px;color:#856404;"></div>
       </div>
 
       <div class="recommendation">
@@ -389,12 +572,13 @@
         <div class="alloc-a500" style="width:45%;">A500 45%</div>
         <div class="alloc-gem" style="width:10%;">创业板 10%</div>
       </div>
-      <p style="font-size:12px;color:#888;">每月新增资金3000元 · 机会资金单独管理，不参与月度计算</p>
+      <p style="font-size:12px;color:#888;">警戒范围：标普/A500 35%-55% ｜ 创业板 5%-15% ｜ 偏离目标±10%启动再平衡</p>
 
       <div class="footer-note">
-        <strong>核心逻辑：</strong>目标比例 + 估值评分 + 偏离修正<br>
-        <strong>低估奖励（仅标普500）：</strong>跌幅≥20% ×1.5 ｜ 跌幅≥30% ×2 ｜ 跌幅≥40% ×3<br>
-        <strong>现金池规则：</strong>调整后买入总额 &lt; 月预算70% 时，剩余资金进入现金池等待机会
+        <strong>执行原则：</strong><br>
+        不因为上涨追高 ｜ 不因为下跌恐慌<br>
+        平时：3000元动态投入 ｜ 大跌：现金池投入 ｜ 危机：30000元买标普500<br>
+        <strong>现金池上限：</strong>20000元，超过必须投入
       </div>
     </div>
 
@@ -402,103 +586,202 @@
 </div>
 
 <script>
-// 目标比例
+// === 配置 ===
 const TARGET = { sp500: 0.45, a500: 0.45, gem: 0.10 };
 const MONTHLY_BUDGET = 3000;
+const BASE = { sp500: 1350, a500: 1350, gem: 300 }; // 基础资金
 
-// 评分→倍率
+// === 根据期数自动计算总资产 ===
+function updateTotalAsset() {
+  const periods = parseInt(document.getElementById('periods').value);
+  const display = document.getElementById('total_asset_display');
+  const detail = document.getElementById('total_asset_detail');
+  if (!isNaN(periods) && periods >= 0) {
+    const totalAsset = periods * MONTHLY_BUDGET;
+    display.textContent = totalAsset.toLocaleString() + ' 元';
+    detail.textContent = `${periods} 期 × 3000 元/期`;
+  } else {
+    display.textContent = '—';
+    detail.textContent = '输入期数自动计算';
+  }
+}
+
+// === 评分→资金系数 ===
 function scoreMultiplier(score) {
-  if (score >= 90) return 1.5;
-  if (score >= 75) return 1.25;
-  if (score >= 50) return 1.0;
-  if (score >= 30) return 0.5;
+  if (score >= 80) return 1.5;
+  if (score >= 60) return 1.2;
+  if (score >= 40) return 1.0;
+  if (score >= 20) return 0.5;
   return 0;
 }
 
-// 标普500低估奖励倍率
-function sp500BonusMultiplier(drop) {
-  if (drop >= 40) return 3;
-  if (drop >= 30) return 2;
-  if (drop >= 20) return 1.5;
-  return 1;
+// === 标普500评分 ===
+// PE评分(40) + PB评分(20) + 跌幅评分(40) = 100
+function scoreSP500(pe, pbPct, drop) {
+  // PE评分
+  let peScore = 0;
+  if (pe <= 16) peScore = 40;
+  else if (pe <= 20) peScore = 35;
+  else if (pe <= 24) peScore = 30;
+  else if (pe <= 27) peScore = 20;
+  else if (pe <= 30) peScore = 10;
+  else peScore = 0;
+
+  // PB百分位评分
+  let pbScore = 0;
+  if (pbPct < 20) pbScore = 20;
+  else if (pbPct < 40) pbScore = 15;
+  else if (pbPct < 60) pbScore = 10;
+  else if (pbPct < 80) pbScore = 5;
+  else pbScore = 0;
+
+  // 跌幅评分
+  let dropScore = 0;
+  if (drop >= 40) dropScore = 40;
+  else if (drop >= 30) dropScore = 35;
+  else if (drop >= 20) dropScore = 25;
+  else if (drop >= 10) dropScore = 15;
+  else dropScore = 0;
+
+  return { total: peScore + pbScore + dropScore, peScore, pbScore, dropScore };
 }
 
+// === A500评分 ===
+// PE百分位(40) + PB百分位(20) + 跌幅评分(40) = 100
+function scoreA500(pePct, pbPct, drop) {
+  let peScore = 0;
+  if (pePct < 20) peScore = 40;
+  else if (pePct < 40) peScore = 35;
+  else if (pePct < 60) peScore = 25;
+  else if (pePct < 80) peScore = 15;
+  else peScore = 0;
+
+  let pbScore = 0;
+  if (pbPct < 20) pbScore = 20;
+  else if (pbPct < 40) pbScore = 15;
+  else if (pbPct < 60) pbScore = 10;
+  else if (pbPct < 80) pbScore = 5;
+  else pbScore = 0;
+
+  let dropScore = 0;
+  if (drop >= 40) dropScore = 40;
+  else if (drop >= 30) dropScore = 35;
+  else if (drop >= 20) dropScore = 25;
+  else if (drop >= 10) dropScore = 15;
+  else dropScore = 0;
+
+  return { total: peScore + pbScore + dropScore, peScore, pbScore, dropScore };
+}
+
+// === 创业板评分 ===
+// PE百分位(40) + PB百分位(20) + 跌幅评分(40) = 100
+// 跌幅阈值更高（波动大）
+function scoreGem(pePct, pbPct, drop) {
+  let peScore = 0;
+  if (pePct < 20) peScore = 40;
+  else if (pePct < 40) peScore = 35;
+  else if (pePct < 60) peScore = 25;
+  else if (pePct < 80) peScore = 15;
+  else peScore = 0;
+
+  let pbScore = 0;
+  if (pbPct < 20) pbScore = 20;
+  else if (pbPct < 40) pbScore = 15;
+  else if (pbPct < 60) pbScore = 10;
+  else if (pbPct < 80) pbScore = 5;
+  else pbScore = 0;
+
+  // 创业板跌幅阈值更高
+  let dropScore = 0;
+  if (drop >= 50) dropScore = 40;
+  else if (drop >= 40) dropScore = 35;
+  else if (drop >= 30) dropScore = 25;
+  else if (drop >= 20) dropScore = 15;
+  else dropScore = 0;
+
+  return { total: peScore + pbScore + dropScore, peScore, pbScore, dropScore };
+}
+
+// === 仓位系数 = 目标比例 / 当前比例，限制 0.5~1.5 ===
+function positionMultiplier(targetRatio, currentRatio) {
+  if (currentRatio <= 0) return 1.5; // 无持仓，取最大
+  let m = targetRatio / currentRatio;
+  return Math.max(0.5, Math.min(1.5, m));
+}
+
+// === 主计算函数 ===
 function calculate() {
-  // 读取输入
-  const totalAsset = parseFloat(document.getElementById('total_asset').value) || 0;
+  // 读取持仓（总资产由期数自动计算）
+  const periods = parseInt(document.getElementById('periods').value) || 0;
+  const totalAsset = periods * MONTHLY_BUDGET;
   const sp500Value = parseFloat(document.getElementById('sp500_value').value) || 0;
   const a500Value = parseFloat(document.getElementById('a500_value').value) || 0;
   const gemValue = parseFloat(document.getElementById('gem_value').value) || 0;
 
-  const sp500Score = parseFloat(document.getElementById('sp500_score').value) || 0;
-  const a500Score = parseFloat(document.getElementById('a500_score').value) || 0;
-  const gemScore = parseFloat(document.getElementById('gem_score').value) || 0;
+  // 读取市场数据
+  const sp500Pe = parseFloat(document.getElementById('sp500_pe').value) || 0;
+  const sp500PbPct = parseFloat(document.getElementById('sp500_pb_pct').value) || 0;
   const sp500Drop = parseFloat(document.getElementById('sp500_drop').value) || 0;
 
-  // === 第一步：计算目标金额差额 ===
-  const targetSp500 = totalAsset * TARGET.sp500;
-  const targetA500 = totalAsset * TARGET.a500;
-  const targetGem = totalAsset * TARGET.gem;
+  const a500PePct = parseFloat(document.getElementById('a500_pe_pct').value) || 0;
+  const a500PbPct = parseFloat(document.getElementById('a500_pb_pct').value) || 0;
+  const a500Drop = parseFloat(document.getElementById('a500_drop').value) || 0;
 
-  const diffSp500 = targetSp500 - sp500Value; // 正=低配，负=超配
-  const diffA500 = targetA500 - a500Value;
-  const diffGem = targetGem - gemValue;
+  const gemPePct = parseFloat(document.getElementById('gem_pe_pct').value) || 0;
+  const gemPbPct = parseFloat(document.getElementById('gem_pb_pct').value) || 0;
+  const gemDrop = parseFloat(document.getElementById('gem_drop').value) || 0;
 
-  // 仅低配（正差额）参与分配
-  const posSp500 = Math.max(diffSp500, 0);
-  const posA500 = Math.max(diffA500, 0);
-  const posGem = Math.max(diffGem, 0);
-  const posSum = posSp500 + posA500 + posGem;
+  // === 计算评分 ===
+  const sp500 = scoreSP500(sp500Pe, sp500PbPct, sp500Drop);
+  const a500 = scoreA500(a500PePct, a500PbPct, a500Drop);
+  const gem = scoreGem(gemPePct, gemPbPct, gemDrop);
 
-  // === 第二步：计算基础买入金额 ===
-  let baseSp500 = 0, baseA500 = 0, baseGem = 0;
-  if (posSum > 0) {
-    baseSp500 = MONTHLY_BUDGET * (posSp500 / posSum);
-    baseA500 = MONTHLY_BUDGET * (posA500 / posSum);
-    baseGem = MONTHLY_BUDGET * (posGem / posSum);
-  } else {
-    // 全部超配：按目标比例均分
-    baseSp500 = MONTHLY_BUDGET * TARGET.sp500;
-    baseA500 = MONTHLY_BUDGET * TARGET.a500;
-    baseGem = MONTHLY_BUDGET * TARGET.gem;
-  }
+  // 显示评分
+  document.getElementById('sp500_score').textContent = sp500.total;
+  document.getElementById('sp500_detail').textContent = `PE${sp500.peScore} + PB${sp500.pbScore} + 跌幅${sp500.dropScore}`;
+  document.getElementById('a500_score').textContent = a500.total;
+  document.getElementById('a500_detail').textContent = `PE${a500.peScore} + PB${a500.pbScore} + 跌幅${a500.dropScore}`;
+  document.getElementById('gem_score').textContent = gem.total;
+  document.getElementById('gem_detail').textContent = `PE${gem.peScore} + PB${gem.pbScore} + 跌幅${gem.dropScore}`;
 
-  // === 第三步：评分调整 ===
-  const multSp500 = scoreMultiplier(sp500Score);
-  const multA500 = scoreMultiplier(a500Score);
-  const multGem = scoreMultiplier(gemScore);
+  // === 计算当前仓位 ===
+  const totalValue = sp500Value + a500Value + gemValue;
+  const sp500Ratio = totalValue > 0 ? sp500Value / totalValue : 0;
+  const a500Ratio = totalValue > 0 ? a500Value / totalValue : 0;
+  const gemRatio = totalValue > 0 ? gemValue / totalValue : 0;
 
-  // 标普500低估奖励
-  const bonusSp500 = sp500BonusMultiplier(sp500Drop);
-  const hasBonus = sp500Drop >= 20;
+  // === 仓位系数 ===
+  const posMultSp500 = positionMultiplier(TARGET.sp500, sp500Ratio);
+  const posMultA500 = positionMultiplier(TARGET.a500, a500Ratio);
+  const posMultGem = positionMultiplier(TARGET.gem, gemRatio);
 
-  // 最终倍率（标普500 = 评分倍率 × 低估奖励倍率）
-  const finalMultSp500 = multSp500 * bonusSp500;
-  const finalMultA500 = multA500;
-  const finalMultGem = multGem;
+  // === 评分系数 ===
+  const scoreMultSp500 = scoreMultiplier(sp500.total);
+  const scoreMultA500 = scoreMultiplier(a500.total);
+  const scoreMultGem = scoreMultiplier(gem.total);
 
-  const adjSp500 = baseSp500 * finalMultSp500;
-  const adjA500 = baseA500 * finalMultA500;
-  const adjGem = baseGem * finalMultGem;
+  // === 最终金额（缩放前）===
+  const rawSp500 = BASE.sp500 * scoreMultSp500 * posMultSp500;
+  const rawA500 = BASE.a500 * scoreMultA500 * posMultA500;
+  const rawGem = BASE.gem * scoreMultGem * posMultGem;
+  const rawTotal = rawSp500 + rawA500 + rawGem;
 
-  const adjTotal = adjSp500 + adjA500 + adjGem;
-
-  // === 归一化到3000元，但若总额<70%则剩余进现金池 ===
+  // === 缩放到3000元 ===
   let buySp500 = 0, buyA500 = 0, buyGem = 0, cashPool = 0;
 
-  if (adjTotal === 0) {
-    // 全部评分为0，全部进现金池
+  if (rawTotal === 0) {
+    // 全部评分为0
     cashPool = MONTHLY_BUDGET;
-  } else if (adjTotal < MONTHLY_BUDGET * 0.7) {
-    // 调整后总额 < 70% 月预算：按调整后金额买入，剩余进现金池
-    buySp500 = Math.round(adjSp500);
-    buyA500 = Math.round(adjA500);
-    buyGem = Math.round(adjGem);
+  } else if (rawTotal < MONTHLY_BUDGET) {
+    // 调整后总额 < 3000：按实际金额买入，剩余进现金池
+    buySp500 = Math.round(rawSp500);
+    buyA500 = Math.round(rawA500);
+    buyGem = Math.round(rawGem);
     cashPool = MONTHLY_BUDGET - buySp500 - buyA500 - buyGem;
   } else {
     // 归一化到3000元
-    buySp500 = Math.round(MONTHLY_BUDGET * (adjSp500 / adjTotal));
-    buyA500 = Math.round(MONTHLY_BUDGET * (adjA500 / adjTotal));
+    buySp500 = Math.round(MONTHLY_BUDGET * (rawSp500 / rawTotal));
+    buyA500 = Math.round(MONTHLY_BUDGET * (rawA500 / rawTotal));
     buyGem = MONTHLY_BUDGET - buySp500 - buyA500; // 消除取整误差
     cashPool = 0;
   }
@@ -514,45 +797,66 @@ function calculate() {
   document.getElementById('buy_gem').className = 'amount' + (buyGem === 0 ? ' zero' : '');
   document.getElementById('buy_cash').className = 'amount' + (cashPool === 0 ? ' zero' : '');
 
-  document.getElementById('buy_sp500_desc').textContent = `评分${sp500Score} × ${multSp500}${hasBonus ? ` × 奖励${bonusSp500}` : ''}`;
-  document.getElementById('buy_a500_desc').textContent = `评分${a500Score} × ${multA500}`;
-  document.getElementById('buy_gem_desc').textContent = `评分${gemScore} × ${multGem}`;
+  document.getElementById('buy_sp500_desc').textContent = `评分${sp500.total}×${scoreMultSp500} 仓位×${posMultSp500.toFixed(2)}`;
+  document.getElementById('buy_a500_desc').textContent = `评分${a500.total}×${scoreMultA500} 仓位×${posMultA500.toFixed(2)}`;
+  document.getElementById('buy_gem_desc').textContent = `评分${gem.total}×${scoreMultGem} 仓位×${posMultGem.toFixed(2)}`;
   document.getElementById('buy_cash_desc').textContent = cashPool > 0 ? '等待机会' : '无结余';
 
-  // === 明细表 ===
-  const fmt = (v) => (v >= 0 ? '+' : '') + Math.round(v).toLocaleString();
-  const cls = (v) => v >= 0 ? 'positive' : 'negative';
+  // === 仓位状态 ===
+  const posStatus = document.getElementById('position_status');
+  const checkPos = (name, current, target, min, max) => {
+    const pct = (current * 100).toFixed(1);
+    let cls = 'normal', status = '正常';
+    if (current > max) { cls = 'over'; status = '超配·停止买入'; }
+    else if (current < min) { cls = 'under'; status = '低配·优先买入'; }
+    return `<div class="pos-item ${cls}">
+      <div class="pos-name">${name}</div>
+      <div class="pos-val">${pct}%</div>
+      <div class="pos-target">目标${(target*100).toFixed(0)}% · ${status}</div>
+    </div>`;
+  };
+  posStatus.innerHTML =
+    checkPos('标普500', sp500Ratio, TARGET.sp500, 0.35, 0.55) +
+    checkPos('A500', a500Ratio, TARGET.a500, 0.35, 0.55) +
+    checkPos('创业板', gemRatio, TARGET.gem, 0.05, 0.15);
 
+  // === 明细表 ===
   document.getElementById('detail_body').innerHTML = `
     <tr>
-      <td class="label">目标金额</td>
-      <td>${Math.round(targetSp500).toLocaleString()}</td>
-      <td>${Math.round(targetA500).toLocaleString()}</td>
-      <td>${Math.round(targetGem).toLocaleString()}</td>
+      <td class="label">综合评分</td>
+      <td>${sp500.total}</td>
+      <td>${a500.total}</td>
+      <td>${gem.total}</td>
     </tr>
     <tr>
-      <td class="label">当前金额</td>
-      <td>${Math.round(sp500Value).toLocaleString()}</td>
-      <td>${Math.round(a500Value).toLocaleString()}</td>
-      <td>${Math.round(gemValue).toLocaleString()}</td>
+      <td class="label">基础资金</td>
+      <td>${BASE.sp500}</td>
+      <td>${BASE.a500}</td>
+      <td>${BASE.gem}</td>
     </tr>
     <tr>
-      <td class="label">差额(目标-当前)</td>
-      <td class="${cls(diffSp500)}">${fmt(diffSp500)}</td>
-      <td class="${cls(diffA500)}">${fmt(diffA500)}</td>
-      <td class="${cls(diffGem)}">${fmt(diffGem)}</td>
+      <td class="label">评分系数</td>
+      <td>${scoreMultSp500}</td>
+      <td>${scoreMultA500}</td>
+      <td>${scoreMultGem}</td>
     </tr>
     <tr>
-      <td class="label">基础买入</td>
-      <td>${Math.round(baseSp500)}</td>
-      <td>${Math.round(baseA500)}</td>
-      <td>${Math.round(baseGem)}</td>
+      <td class="label">当前仓位</td>
+      <td>${(sp500Ratio*100).toFixed(1)}%</td>
+      <td>${(a500Ratio*100).toFixed(1)}%</td>
+      <td>${(gemRatio*100).toFixed(1)}%</td>
     </tr>
     <tr>
-      <td class="label">评分倍率</td>
-      <td>${multSp500}${hasBonus ? ` × ${bonusSp500}` : ''}</td>
-      <td>${multA500}</td>
-      <td>${multGem}</td>
+      <td class="label">仓位系数</td>
+      <td>${posMultSp500.toFixed(3)}</td>
+      <td>${posMultA500.toFixed(3)}</td>
+      <td>${posMultGem.toFixed(3)}</td>
+    </tr>
+    <tr>
+      <td class="label">调整后金额(缩放前)</td>
+      <td>${Math.round(rawSp500)}</td>
+      <td>${Math.round(rawA500)}</td>
+      <td>${Math.round(rawGem)}</td>
     </tr>
     <tr class="highlight">
       <td class="label">最终买入</td>
@@ -562,45 +866,176 @@ function calculate() {
     </tr>
   `;
 
-  // === 低估奖励提示 ===
-  if (hasBonus) {
-    document.getElementById('bonus_section').style.display = 'block';
-    let bonusDesc = '';
-    if (sp500Drop >= 40) bonusDesc = `标普500跌幅 ${sp500Drop}% ≥ 40%，触发历史级低估奖励，倍率 ×3`;
-    else if (sp500Drop >= 30) bonusDesc = `标普500跌幅 ${sp500Drop}% ≥ 30%，触发深度低估奖励，倍率 ×2`;
-    else bonusDesc = `标普500跌幅 ${sp500Drop}% ≥ 20%，触发低估奖励，倍率 ×1.5`;
-    document.getElementById('bonus_text').textContent = `${bonusDesc}。基础买入 ${Math.round(baseSp500)} 元 → 调整后 ${Math.round(adjSp500)} 元。`;
+  // === 机会资金判断（仅标普500）===
+  const oppPanel = document.getElementById('opp_panel');
+  const phase1 = document.getElementById('phase1');
+  const phase2 = document.getElementById('phase2');
+  const phase3 = document.getElementById('phase3');
+  const oppTitle = document.getElementById('opp_title');
+  const oppDesc = document.getElementById('opp_desc');
+  const oppDistance = document.getElementById('opp_distance');
+
+  phase1.classList.remove('triggered');
+  phase2.classList.remove('triggered');
+  phase3.classList.remove('triggered');
+  oppPanel.classList.remove('waiting', 'alert', 'active');
+
+  let triggered = [];
+  if (sp500Drop >= 25 && sp500Pe > 0 && sp500Pe <= 20) { triggered.push(1); phase1.classList.add('triggered'); }
+  if (sp500Drop >= 35 && sp500Pe > 0 && sp500Pe <= 18) { triggered.push(2); phase2.classList.add('triggered'); }
+  if (sp500Drop >= 45 && sp500Pe > 0 && sp500Pe <= 15) { triggered.push(3); phase3.classList.add('triggered'); }
+
+  if (triggered.length === 0) {
+    oppPanel.classList.add('waiting');
+    oppTitle.textContent = '⏳ 暂无机会 · 继续等待';
+    oppDesc.textContent = `当前标普500：跌幅 ${sp500Drop}%，PE ${sp500Pe || '—'}。未触发机会资金条件，30000元继续待命。`;
+
+    // 计算距离第一档的差距
+    const needDrop = Math.max(0, 25 - sp500Drop);
+    const needPe = sp500Pe > 20 ? (sp500Pe - 20) : 0;
+    oppDistance.innerHTML = `距离第一档（跌幅≥25% 且 PE≤20）：
+      <br>· 跌幅还需再跌 <strong>${needDrop.toFixed(1)}%</strong>（当前 ${sp500Drop}%）
+      <br>· PE还需下降 <strong>${needPe.toFixed(1)}</strong>（当前 ${sp500Pe || '—'}，目标≤20）`;
   } else {
-    document.getElementById('bonus_section').style.display = 'none';
+    oppPanel.classList.add('active');
+    const totalInvest = triggered.reduce((s, p) => s + (p === 1 ? 6000 : 12000), 0);
+    oppTitle.textContent = `🚨 机会触发！已启动第${Math.max(...triggered)}阶段`;
+    oppDesc.textContent = `标普500当前：跌幅 ${sp500Drop}%，PE ${sp500Pe}。触发第 ${triggered.join('、')} 阶段，累计投入机会资金 ${totalInvest} 元。`;
+    oppDistance.innerHTML = '';
   }
 
   // === 操作建议 ===
   let actionText = '';
   const totalBuy = buySp500 + buyA500 + buyGem;
 
-  if (totalBuy === 0) {
-    actionText = '⚠️ 三只资产评分均极低（<30分），本月不买入，3000元全部进入现金池等待机会。';
-  } else if (cashPool > 0) {
-    actionText = `📊 调整后买入总额 ${totalBuy} 元（低于月预算70%），剩余 ${cashPool} 元进入现金池。\n`;
-    if (buySp500 > 0) actionText += `· 标普500：${buySp500} 元\n`;
-    if (buyA500 > 0) actionText += `· A500：${buyA500} 元\n`;
-    if (buyGem > 0) actionText += `· 创业板：${buyGem} 元\n`;
-  } else {
-    actionText = `✅ 本月3000元全部分配完成：\n`;
-    if (buySp500 > 0) actionText += `· 标普500：${buySp500} 元${hasBonus ? '（含低估奖励）' : ''}\n`;
-    if (buyA500 > 0) actionText += `· A500：${buyA500} 元\n`;
-    if (buyGem > 0) actionText += `· 创业板：${buyGem} 元\n`;
-  }
+  // 应投总资产 vs 实际持仓 对比
+  const profitLoss = totalValue - totalAsset;
+  const profitPct = totalAsset > 0 ? (profitLoss / totalAsset * 100) : 0;
+  const plText = profitLoss >= 0
+    ? `盈利 ${Math.round(profitLoss).toLocaleString()} 元（+${profitPct.toFixed(1)}%）`
+    : `亏损 ${Math.abs(Math.round(profitLoss)).toLocaleString()} 元（${profitPct.toFixed(1)}%）`;
+  actionText += `💰 账户总览：${periods}期应投 ${totalAsset.toLocaleString()} 元，实际持仓 ${Math.round(totalValue).toLocaleString()} 元，${plText}\n\n`;
 
-  // 偏离提示
-  if (diffSp500 < 0) actionText += `\n📌 标普500当前超配 ${Math.abs(Math.round(diffSp500))} 元，本月${buySp500 > 0 ? '仍可买入（评分较高）' : '暂停买入'}。`;
-  if (diffA500 < 0) actionText += `\n📌 A500当前超配 ${Math.abs(Math.round(diffA500))} 元。`;
-  if (diffGem < 0) actionText += `\n📌 创业板当前超配 ${Math.abs(Math.round(diffGem))} 元。`;
+  if (totalBuy === 0) {
+    actionText += '⚠️ 三只资产评分均极低（<20分），本月不买入，3000元全部进入现金池等待机会。';
+  } else if (cashPool > 0) {
+    actionText += `📊 调整后买入总额 ${totalBuy} 元（低于月预算3000元），剩余 ${cashPool} 元进入现金池。\n`;
+  } else {
+    actionText += `✅ 本月3000元全部分配完成：\n`;
+  }
+  if (buySp500 > 0) actionText += `· 标普500：${buySp500} 元\n`;
+  if (buyA500 > 0) actionText += `· A500：${buyA500} 元\n`;
+  if (buyGem > 0) actionText += `· 创业板：${buyGem} 元\n`;
+
+  // 仓位偏离提示
+  if (sp500Ratio > 0.55) actionText += `\n📌 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 超过55%警戒线，建议停止买入标普500，资金优先补低配资产。`;
+  if (a500Ratio > 0.55) actionText += `\n📌 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 超过55%警戒线，建议停止买入A500。`;
+  if (gemRatio > 0.15) actionText += `\n📌 创业板当前仓位 ${(gemRatio*100).toFixed(1)}% 超过15%警戒线，建议停止买入创业板。`;
+
+  if (sp500Ratio < 0.35) actionText += `\n💡 标普500当前仓位 ${(sp500Ratio*100).toFixed(1)}% 低于35%，属于低配，优先买入。`;
+  if (a500Ratio < 0.35) actionText += `\n💡 A500当前仓位 ${(a500Ratio*100).toFixed(1)}% 低于35%，属于低配，优先买入。`;
+  if (gemRatio < 0.05) actionText += `\n💡 创业板当前仓位 ${(gemRatio*100).toFixed(1)}% 低于5%，属于低配，优先买入。`;
 
   document.getElementById('action_text').textContent = actionText;
 
   document.getElementById('result_area').style.display = 'block';
 }
+
+// === 实时评分预览 ===
+function updateScorePreview() {
+  const sp500Pe = parseFloat(document.getElementById('sp500_pe').value);
+  const sp500PbPct = parseFloat(document.getElementById('sp500_pb_pct').value);
+  const sp500Drop = parseFloat(document.getElementById('sp500_drop').value);
+  const a500PePct = parseFloat(document.getElementById('a500_pe_pct').value);
+  const a500PbPct = parseFloat(document.getElementById('a500_pb_pct').value);
+  const a500Drop = parseFloat(document.getElementById('a500_drop').value);
+  const gemPePct = parseFloat(document.getElementById('gem_pe_pct').value);
+  const gemPbPct = parseFloat(document.getElementById('gem_pb_pct').value);
+  const gemDrop = parseFloat(document.getElementById('gem_drop').value);
+
+  if (!isNaN(sp500Pe) && !isNaN(sp500PbPct) && !isNaN(sp500Drop)) {
+    const r = scoreSP500(sp500Pe, sp500PbPct, sp500Drop);
+    document.getElementById('sp500_score').textContent = r.total;
+    document.getElementById('sp500_detail').textContent = `PE${r.peScore} + PB${r.pbScore} + 跌幅${r.dropScore}`;
+  }
+  if (!isNaN(a500PePct) && !isNaN(a500PbPct) && !isNaN(a500Drop)) {
+    const r = scoreA500(a500PePct, a500PbPct, a500Drop);
+    document.getElementById('a500_score').textContent = r.total;
+    document.getElementById('a500_detail').textContent = `PE${r.peScore} + PB${r.pbScore} + 跌幅${r.dropScore}`;
+  }
+  if (!isNaN(gemPePct) && !isNaN(gemPbPct) && !isNaN(gemDrop)) {
+    const r = scoreGem(gemPePct, gemPbPct, gemDrop);
+    document.getElementById('gem_score').textContent = r.total;
+    document.getElementById('gem_detail').textContent = `PE${r.peScore} + PB${r.pbScore} + 跌幅${r.dropScore}`;
+  }
+}
+
+// 所有需要缓存的输入框ID
+const INPUT_IDS = [
+  'periods', 'sp500_value', 'a500_value', 'gem_value',
+  'sp500_pe', 'sp500_pb_pct', 'sp500_drop',
+  'a500_pe_pct', 'a500_pb_pct', 'a500_drop',
+  'gem_pe_pct', 'gem_pb_pct', 'gem_drop'
+];
+const STORAGE_KEY = 'etf_calculator_v6_inputs';
+
+// 保存所有输入值到 localStorage
+function saveInputs() {
+  const data = {};
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {}
+}
+
+// 从 localStorage 恢复输入值
+function loadInputs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+  } catch (e) {}
+}
+
+// 清空缓存
+function clearInputs() {
+  if (!confirm('确定清空所有输入数据？')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  updateTotalAsset();
+  ['sp500_score','a500_score','gem_score'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  ['sp500_detail','a500_detail','gem_detail'].forEach(id => {
+    document.getElementById(id).textContent = id.includes('sp500') ? 'PE0 + PB0 + 跌幅0'
+      : id.includes('a500') ? 'PE0 + PB0 + 跌幅0' : 'PE0 + PB0 + 跌幅0';
+  });
+  document.getElementById('result_area').style.display = 'none';
+}
+
+// 监听所有输入框，变化时自动保存
+INPUT_IDS.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', saveInputs);
+});
+
+// 页面加载时恢复数据
+window.addEventListener('DOMContentLoaded', () => {
+  loadInputs();
+  updateTotalAsset();
+  updateScorePreview();
+});
+
 </script>
 </body>
 </html>
