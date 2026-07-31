@@ -743,7 +743,7 @@ function scoreGem(pePct, pbPct, drop) {
 
 // === 仓位系数 = 目标比例 / 当前比例，限制 0.5~1.5 ===
 function positionMultiplier(targetRatio, currentRatio) {
-  if (currentRatio <= 0) return 1.5; // 无持仓，取最大
+  if (currentRatio <= 0) return 1; // 无持仓，取最大
   let m = targetRatio / currentRatio;
   return Math.max(0.5, Math.min(1.5, m));
 }
