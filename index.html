@@ -785,9 +785,9 @@ function calculate() {
 
   // === 计算当前仓位 ===
   const totalValue = sp500Value + a500Value + gemValue;
-  const sp500Ratio = totalValue > 0 ? sp500Value / totalValue : 0;
-  const a500Ratio = totalValue > 0 ? a500Value / totalValue : 0;
-  const gemRatio = totalValue > 0 ? gemValue / totalValue : 0;
+  const sp500Ratio = totalAsset > 0 ? sp500Value / totalAsset : 0;
+  const a500Ratio = totalAsset > 0 ? a500Value / totalAsset : 0;
+  const gemRatio = totalAsset > 0 ? gemValue / totalAsset : 0;
 
   // === 仓位系数 ===
   const posMultSp500 = positionMultiplier(TARGET.sp500, sp500Ratio);
